@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rafayel · Private Asset Terminal · Ultimate</title>
+<style>
+:root{
+  --bg:#020711; --panel:#071321; --panel2:#091829; --line:#38577d;
+  --text:#e8edf5; --muted:#7889a3; --blue:#91b9ef; --blue2:#527eb7;
+  --green:#74c59b; --danger:#d18c9c; --gold:#c5aa78;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#01050b;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+body{min-height:100vh;overflow-x:hidden}
+button,input{font:inherit}
+button{cursor:pointer}
+.screen{min-height:100vh;display:none;position:relative;overflow:hidden}
+.screen.active{display:flex}
+.bg-glow:before,.bg-glow:after{content:"";position:absolute;border-radius:50%;filter:blur(70px);opacity:.16;pointer-events:none}
+.bg-glow:before{width:280px;height:280px;background:#38689f;top:12%;left:-100px}
+.bg-glow:after{width:360px;height:360px;background:#193b68;right:-160px;bottom:10%}
+
+/* Splash */
+#splash{align-items:center;justify-content:center;text-align:center;background:
+ radial-gradient(circle at 50% 38%,rgba(42,76,119,.22),transparent 30%),
+ linear-gradient(160deg,#030812,#01050b 70%)}
+.splash-inner{width:min(92%,650px);padding:45px 20px;position:relative;z-index:2}
+.qmark{width:110px;height:110px;border:1px solid #3d5878;border-radius:50%;margin:0 auto 30px;display:grid;place-items:center;box-shadow:0 0 0 12px rgba(56,86,120,.05),0 0 60px rgba(91,140,198,.12)}
+.qmark span{font-family:Georgia,serif;font-size:82px;font-weight:300;color:#9bc1f2;line-height:1}
+.kicker{letter-spacing:.42em;color:#b8c8dc;font-size:17px}
+.name{font-family:serif;font-size:42px;letter-spacing:.32em;margin:28px 0 12px}
+.sub{letter-spacing:.45em;color:#60728c;font-size:14px}
+.est{margin:34px 0;color:#60718b;letter-spacing:.35em;font-size:12px}
+.primary{width:330px;max-width:85%;height:62px;background:transparent;border:1px solid #52729a;color:#eef5ff;letter-spacing:.25em;font-size:17px}
+.footer{margin-top:55px;color:#5e718c;letter-spacing:.32em;font-size:11px;line-height:2}
+
+/* loading / password */
+.center{align-items:center;justify-content:center;text-align:center}
+.center-card{width:min(700px,92%);position:relative;z-index:2}
+.small-q{width:76px;height:76px;border:1px solid #3d5878;border-radius:50%;margin:0 auto 30px;display:grid;place-items:center;color:#8fb9ef;font-family:Georgia,serif;font-size:45px}
+.title{font-family:serif;font-size:35px;letter-spacing:.38em}
+.en{margin-top:16px;color:#5d708d;letter-spacing:.36em;font-size:13px}
+.rule{height:1px;background:#496987;margin:36px auto;width:160px}
+.loading-num{font-size:24px;letter-spacing:.35em;color:#91a9c7;margin:18px 0}
+.loading-track{height:2px;background:#17263a;max-width:540px;margin:0 auto;overflow:hidden}
+.loading-bar{height:100%;width:0;background:#8eb8ed;box-shadow:0 0 20px #6f9ed2;transition:width .1s linear}
+.dots{letter-spacing:14px;color:#6588b1;margin-top:32px}
+.password-box{margin:30px auto 0;max-width:360px}
+.password-box input{width:100%;height:60px;background:rgba(4,12,23,.72);border:1px solid #405c7d;color:#fff;text-align:center;letter-spacing:.5em;outline:none}
+.hint{font-size:11px;color:#526680;letter-spacing:.2em;margin:12px}
+.error{height:20px;color:#d18c9c;font-size:12px}
+.hidden{display:none!important}
+
+/* dashboard */
+#dashboard{display:block;background:
+linear-gradient(180deg,#020711 0,#030914 45%,#020711 100%)}
+.shell{max-width:1050px;margin:0 auto;padding:28px 18px 70px;position:relative;z-index:2}
+.topbar{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid rgba(83,113,146,.3);padding-bottom:18px}
+.top-left{color:#7d90aa;letter-spacing:.28em;font-size:11px;line-height:1.9}
+.clock{font-variant-numeric:tabular-nums}
+.status{color:#75c59b;letter-spacing:.15em;font-size:11px}
+.profile{display:grid;grid-template-columns:100px 1fr;gap:24px;padding:32px 0}
+.profile-mark{height:100px;border-left:2px solid #4a729c;display:grid;place-items:center;font:72px Georgia;color:#8eb9ef}
+.profile h1{margin:0;font-family:serif;font-size:42px;font-weight:400;letter-spacing:.2em}
+.profile-meta{margin-top:10px;color:#7e91aa;line-height:2;font-size:14px}
+.profile-meta b{color:#e7edf6;font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{border:1px solid #29415f;border-radius:30px;padding:6px 12px;color:#7187a3;font-size:11px;letter-spacing:.08em}
+
+.asset-hero{background:linear-gradient(145deg,#071526,#06101d);border:1px solid #1e3550;border-radius:14px;padding:26px 24px;box-shadow:0 18px 70px rgba(0,0,0,.28)}
+.eyebrow{display:flex;justify-content:space-between;color:#7890ac;letter-spacing:.25em;font-size:12px}
+.total{font-size:clamp(36px,6vw,65px);color:#91b9ef;font-family:Georgia,serif;margin:12px 0 8px;font-variant-numeric:tabular-nums}
+.live{color:#75c59b;font-size:12px;letter-spacing:.15em}
+.asset-tabs{display:flex;gap:32px;margin-top:25px;color:#5f728c;font-size:11px;letter-spacing:.25em}
+.asset-tabs .on{color:#9eb3ce}
+.fx{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px}
+.fx div{border-top:1px solid #233a55;padding-top:10px;color:#778ba6;font-size:11px}
+.fx strong{display:block;color:#d8e2ef;font-size:15px;margin-top:4px;font-weight:400}
+
+.chart{height:130px;margin-top:20px;position:relative;border-top:1px solid rgba(77,111,145,.2);border-bottom:1px solid rgba(77,111,145,.2)}
+.chart svg{width:100%;height:100%}
+.gridline{stroke:#29405b;stroke-width:1;opacity:.35}
+.line{fill:none;stroke:#8eb8ed;stroke-width:2}
+
+.section{margin-top:30px}
+.section-head{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid #1b2d43;padding-bottom:12px}
+.section-title{font-size:20px;letter-spacing:.14em}
+.section-en{color:#586d87;letter-spacing:.25em;font-size:11px}
+.total-small{color:#8eb8ed;font-family:Georgia,serif;font-size:20px}
+.list{display:grid;gap:1px;background:#132235;margin-top:10px}
+.item{background:#040c17;padding:18px 14px;display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:start}
+.icon{font-size:24px}
+.item-name{font-size:16px}
+.item-desc{color:#61748e;font-size:11px;margin-top:7px;line-height:1.6}
+.item-value{color:#e5ebf3;font-variant-numeric:tabular-nums;font-size:14px;text-align:right;white-space:nowrap}
+
+.notice{margin-top:30px;border:1px solid #243b56;padding:16px;color:#637791;font-size:11px;line-height:1.8;letter-spacing:.04em}
+.logout{display:block;margin:30px auto 0;border:1px solid #324b68;background:none;color:#7187a3;padding:12px 30px;letter-spacing:.2em}
+
+@media(max-width:650px){
+ .name{font-size:34px}.profile{grid-template-columns:65px 1fr;gap:14px}.profile-mark{height:80px;font-size:55px}.profile h1{font-size:29px}
+ .fx{grid-template-columns:repeat(2,1fr)}.item{grid-template-columns:34px 1fr}.item-value{grid-column:2;text-align:left}
+ .topbar{font-size:9px}.total{font-size:39px}.shell{padding-left:13px;padding-right:13px}
+}
+
+/* ===== V3 深海蓝玻璃终端 ===== */
+body{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(40,91,145,.12),transparent 32%),
+    #01050b;
+}
+.screen:after{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(120deg,transparent 0 35%,rgba(126,183,235,.035) 50%,transparent 65%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.008) 0 1px,transparent 1px 4px);
+  mix-blend-mode:screen;
+}
+.splash-inner,.center-card,.shell{position:relative;z-index:3}
+.qmark,.small-q{
+  background:radial-gradient(circle,rgba(90,151,213,.14),transparent 66%);
+  box-shadow:0 0 0 12px rgba(56,86,120,.035),0 0 70px rgba(82,151,219,.16),inset 0 0 35px rgba(120,180,235,.06);
+}
+.primary{
+  background:linear-gradient(180deg,rgba(80,126,177,.09),rgba(3,12,22,.25));
+  box-shadow:inset 0 0 18px rgba(120,170,220,.04),0 8px 30px rgba(0,0,0,.25);
+  transition:.25s ease;
+}
+.primary:hover{border-color:#86afd9;box-shadow:0 0 28px rgba(102,167,226,.18)}
+#dashboard{
+  background:
+    radial-gradient(circle at 50% 7%,rgba(36,99,153,.18),transparent 25%),
+    linear-gradient(180deg,#020811 0,#03101b 48%,#020711 100%);
+}
+.asset-hero,.guest-card,.event-log{
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  background:linear-gradient(145deg,rgba(9,28,47,.84),rgba(4,13,24,.74));
+  box-shadow:inset 0 1px 0 rgba(170,210,245,.06),0 22px 80px rgba(0,0,0,.28);
+}
+.asset-hero{position:relative;overflow:hidden}
+.asset-hero:before,.guest-card:before{
+  content:"";position:absolute;inset:-40%;
+  background:linear-gradient(110deg,transparent 40%,rgba(155,205,246,.06) 48%,transparent 56%);
+  transform:translateX(-35%) rotate(8deg);
+  animation:gloss 9s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes gloss{0%,55%{transform:translateX(-55%) rotate(8deg)}80%,100%{transform:translateX(55%) rotate(8deg)}}
+.guest-card{
+  position:relative;border:1px solid #203c59;border-radius:14px;padding:20px 22px;margin:4px 0 8px;
+  overflow:hidden;
+}
+.guest-grid{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.guest-label{color:#6f89a6;letter-spacing:.24em;font-size:10px}
+.guest-name{font-size:23px;letter-spacing:.1em;margin-top:6px}
+.guest-name small{display:block;color:#617792;font-size:10px;letter-spacing:.22em;margin-top:5px}
+.guest-state{color:#75c59b;font-size:11px;letter-spacing:.16em}
+.eng-low{display:block;color:#4f6680;font-size:.56em;letter-spacing:.16em;margin-top:5px;text-transform:uppercase}
+.item-name .eng-low{font-size:9px;letter-spacing:.14em}
+.section-title .eng-low{font-size:9px}
+.item{transition:background .25s ease,transform .25s ease}
+.item:hover{background:#071727;transform:translateX(2px)}
+.activity-toast{
+  position:fixed;right:18px;bottom:20px;z-index:30;width:min(360px,calc(100vw - 36px));
+  padding:15px 16px;border:1px solid #345776;border-radius:12px;
+  background:rgba(3,13,24,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 20px 70px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.05);
+  transform:translateY(25px);opacity:0;pointer-events:none;transition:.45s ease;
+}
+.activity-toast.show{transform:translateY(0);opacity:1}
+.activity-toast .toast-kicker{font-size:9px;color:#6f8aa7;letter-spacing:.22em}
+.activity-toast .toast-text{margin-top:6px;font-size:13px;color:#dfe8f2;line-height:1.6}
+.activity-toast .toast-text b{color:#9fc7f2;font-weight:400}
+.peek-modal{
+  position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
+  background:rgba(0,4,9,.72);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);padding:20px;
+}
+.peek-modal.open{display:flex}
+.peek-box{
+  width:min(510px,94vw);border:1px solid #3b6389;border-radius:16px;padding:25px;
+  background:linear-gradient(145deg,#071827,#030b14);
+  box-shadow:0 30px 120px rgba(0,0,0,.65),inset 0 1px rgba(255,255,255,.06);
+}
+.peek-title{font-size:20px;letter-spacing:.14em}
+.peek-sub{color:#647b96;font-size:10px;letter-spacing:.2em;margin-top:8px}
+.peek-row{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid #182b40;font-size:12px}
+.peek-row span:last-child{color:#a8c7e9}
+.peek-close{margin-top:20px;width:100%;height:48px;background:none;border:1px solid #355878;color:#b7cbe1;letter-spacing:.2em}
+.interaction-box{text-align:left;padding:30px 28px;position:relative;overflow:hidden}
+.interaction-box:before{
+  content:"";position:absolute;width:260px;height:260px;border-radius:50%;
+  right:-100px;top:-120px;background:radial-gradient(circle,rgba(91,157,219,.13),transparent 68%);
+  pointer-events:none;
+}
+.interaction-box .peek-sub{margin:0 0 18px;color:#6685a5}
+.interaction-box .peek-title{font-family:serif;font-size:29px;letter-spacing:.12em;color:#eef5ff;opacity:0;transform:translateY(8px);animation:dialogIn .7s .15s forwards}
+.interaction-box .peek-english{margin-top:8px;color:#536b86;font-size:10px;letter-spacing:.2em;opacity:0;animation:dialogIn .7s .45s forwards}
+.peek-divider{width:80px;height:1px;background:#385b7e;margin:24px 0;opacity:0;animation:dialogIn .7s .7s forwards}
+.interaction-box .peek-line2{opacity:0;animation:dialogIn .7s 1.25s forwards}
+.interaction-box .peek-line2 + .peek-english{opacity:0;animation:dialogIn .7s 1.55s forwards}
+.peek-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:28px;padding-top:15px;border-top:1px solid rgba(62,92,121,.35);color:#4f6882;font-size:9px;letter-spacing:.18em;opacity:0;animation:dialogIn .7s 1.9s forwards}
+.interaction-box .peek-close{opacity:0;animation:dialogIn .7s 2.15s forwards}
+@keyframes dialogIn{to{opacity:1;transform:translateY(0)}}
+@media(max-width:650px){.interaction-box{padding:26px 22px}.interaction-box .peek-title{font-size:25px}}
+
+@media (orientation:landscape) and (max-height:650px){
+  .splash-inner{padding:24px 20px}
+  .qmark{width:76px;height:76px;margin-bottom:14px}.qmark span{font-size:58px}
+  .name{font-size:28px;margin:12px 0 7px}.est{margin:15px 0}.footer{margin-top:18px}
+  .primary{height:48px}
+  .center-card{max-width:760px}
+  .small-q{width:58px;height:58px;font-size:35px;margin-bottom:12px}
+  .title{font-size:26px}.rule{margin:18px auto}.password-box{margin-top:16px}
+  .shell{max-width:1100px}
+  .profile{grid-template-columns:80px 1fr;padding:22px 0}
+  .profile-mark{height:78px;font-size:54px}
+  .profile h1{font-size:32px}
+  .section{margin-top:22px}
+  .list{grid-template-columns:repeat(2,1fr)}
+  .item{min-height:94px}
+}
+@media (min-width:900px){
+  .shell{max-width:1180px}
+  .section .list{grid-template-columns:repeat(2,1fr)}
+  .section .list .item{min-height:112px}
+}
+
+</style>
+</head>
+<body>
+
+<section id="splash" class="screen active bg-glow">
+  <div class="splash-inner">
+    <div class="qmark"><span>Q</span></div>
+    <div class="kicker">R A F A Y E L</div>
+    <div class="name">祁 煜</div>
+    <div class="sub">P R I V A T E&nbsp;&nbsp; A S S E T</div>
+    <div class="est">—　•　E S T . 0 3 0 6　•　—</div>
+    <button class="primary" onclick="beginAccess()">进&nbsp;&nbsp;入</button>
+    <div class="footer">MO ART STUDIO · LINKONG CITY<br>私人资产 · 授权访问<br><br>LINKONG CITY · WHITE SAND BAY</div>
+  </div>
+</section>
+
+<section id="loading1" class="screen center bg-glow">
+  <div class="center-card">
+    <div class="small-q">Q</div>
+    <div class="title">系统载入</div>
+    <div class="en">SECURE SESSION INITIALIZATION</div>
+    <div class="rule"></div>
+    <div class="loading-num"><span id="loadNum1">0</span>%</div>
+    <div class="loading-track"><div id="bar1" class="loading-bar"></div></div>
+    <div class="dots">• • •</div>
+  </div>
+</section>
+
+<section id="password" class="screen center bg-glow">
+  <div class="center-card">
+    <div class="small-q">◎</div>
+    <div class="title">身份验证</div>
+    <div class="en">IDENTITY VERIFICATION</div>
+    <div class="rule"></div>
+    <div style="color:#70839d;letter-spacing:.2em">仅限授权访问</div>
+    <div class="en">AUTHORIZED PERSONNEL ONLY</div>
+    <div class="password-box">
+      <input id="pw" type="password" inputmode="numeric" maxlength="12" placeholder="••••••">
+      <div class="hint">ACCESS CODE</div>
+      <div id="pwError" class="error"></div>
+      <button class="primary" onclick="verify()">确&nbsp;&nbsp;认</button>
+    </div>
+  </div>
+</section>
+
+<section id="loading2" class="screen center bg-glow">
+  <div class="center-card">
+    <div class="small-q">Q</div>
+    <div class="loading-num"><span id="loadNum2">0</span>%</div>
+    <div class="loading-track"><div id="bar2" class="loading-bar"></div></div>
+    <div class="en" style="margin-top:28px">ACCESS GRANTED</div>
+    <div class="dots">• • •</div>
+  </div>
+</section>
+
+<section id="dashboard" class="screen bg-glow">
+ <div class="shell">
+   <div class="topbar">
+     <div class="top-left">● SECURE SESSION · 临空市 · 白沙湾<br><span id="sessionDate"></span> · <span id="clock" class="clock"></span></div>
+     <div class="status">● ACTIVE</div>
+   </div>
+
+
+   <div class="guest-card">
+     <div class="guest-grid">
+       <div>
+         <div class="guest-label">访客信息 <span class="eng-low">GUEST INFORMATION</span></div>
+         <div class="guest-name">Kayan_J <small>AUTHORIZED GUEST · PERSONAL ACCESS</small></div>
+       </div>
+       <div class="guest-state">● ONLINE<br><span class="eng-low">SESSION ACTIVE</span></div>
+     </div>
+   </div>
+   <div class="profile">
+     <div class="profile-mark">Q</div>
+     <div>
+       <h1>祁 煜 <span class="eng-low">RAFAYEL · PRIVATE PROFILE</span></h1>
+       <div class="profile-meta">
+         Mo Art Studio · 主理人<br>
+         档案号 <b>QY-RAFA YEL-0306</b>　身份等级 <b>天才艺术家</b>　生日 <b>03.06</b><br>
+         伴侣 <b>Kayan_J</b>　状态 <b style="color:#75c59b">ACTIVE</b>
+       </div>
+       <div class="tags"><span class="tag">Q I Y U</span><span class="tag">MO ART STUDIO</span><span class="tag">LINKONG CITY</span></div>
+     </div>
+   </div>
+
+   <div class="asset-hero">
+     <div class="eyebrow"><span>ACCOUNT OVERVIEW</span><span>个人资产收入实时计入</span></div>
+     <div class="eyebrow" style="margin-top:18px"><span>TOTAL ESTIMATED ASSET VALUE</span><span>CNY</span></div>
+     <div id="total" class="total">¥ 11,403,660,565</div>
+     <div class="live">● LIVE · 收入实时计入</div>
+     <div class="asset-tabs"><span class="on">LIQUID</span><span>INVESTABLE</span><span>CONTROLLED</span></div>
+     <div class="fx">
+       <div>人民币 · CNY<strong>1 CNY = 1.0000</strong></div>
+       <div>港币 · HKD<strong>1 HKD ≈ 0.918 CNY</strong></div>
+       <div>美元 · USD<strong>1 USD ≈ 7.08 CNY</strong></div>
+       <div>欧元 · EUR<strong>1 EUR ≈ 8.30 CNY</strong></div>
+     </div>
+     <div class="chart">
+       <svg viewBox="0 0 900 130" preserveAspectRatio="none">
+         <line class="gridline" x1="0" y1="30" x2="900" y2="30"/><line class="gridline" x1="0" y1="65" x2="900" y2="65"/><line class="gridline" x1="0" y1="100" x2="900" y2="100"/>
+         <path id="chartLine" class="line" d="M0 105 L80 98 L160 101 L240 83 L320 91 L400 68 L480 75 L560 53 L640 60 L720 38 L800 43 L900 20"/>
+       </svg>
+     </div>
+   </div>
+
+   <div class="section">
+    <div class="section-head"><div><div class="section-title">不动产 · 岛屿与宅邸<span class="eng-low">REAL ESTATE · ISLAND & ESTATE</span></div><div class="section-en">PRIVATE PROPERTY</div></div><div class="total-small">CNY 2,562,000,000</div></div>
+    <div class="list">
+      <div class="item"><div class="icon">🏝️</div><div><div class="item-name">白沙湾别墅 · 私人岛屿<span class="eng-low">WHITE SAND BAY · PRIVATE ISLAND</span></div><div class="item-desc">含主宅、画室、私人码头与观鲸平台</div></div><div class="item-value">CNY 1,860,000,000</div></div>
+      <div class="item"><div class="icon">🏛️</div><div><div class="item-name">临空市 · Mo Art Studio<span class="eng-low">LINKONG CITY · MO ART STUDIO</span></div><div class="item-desc">主工作室、含画室、展厅与私人居住区</div></div><div class="item-value">CNY 186,000,000</div></div>
+      <div class="item"><div class="icon">🏡</div><div><div class="item-name">海外宅邸 × 4处<span class="eng-low">OVERSEAS RESIDENCES × 4</span></div><div class="item-desc">分布于欧洲、东南亚与海岛，用于展览、创作与休养</div></div><div class="item-value">CNY 420,000,000</div></div>
+      <div class="item"><div class="icon">🗄️</div><div><div class="item-name">艺术仓库与藏品保管库<span class="eng-low">ART STORAGE & PRIVATE VAULT</span></div><div class="item-desc">恒温恒湿，用于存放画作、宝石与私人藏品</div></div><div class="item-value">CNY 96,000,000</div></div>
+    </div>
+   </div>
+
+   <div class="section">
+    <div class="section-head"><div><div class="section-title">艺术与版权<span class="eng-low">ART, GALLERY & COPYRIGHT</span></div><div class="section-en">CREATIVE ASSETS</div></div><div class="total-small">CNY 5,620,000,000</div></div>
+    <div class="list">
+      <div class="item"><div class="icon">🎨</div><div><div class="item-name">Mo Art Studio 与画廊权益<span class="eng-low">MO ART STUDIO & GALLERY RIGHTS</span></div><div class="item-desc">临空市主工作室 / 海外合作画廊股份 / 私人展厅</div></div><div class="item-value">CNY 620,000,000</div></div>
+      <div class="item"><div class="icon">🌐</div><div><div class="item-name">全球巡展与策展权益<span class="eng-low">GLOBAL EXHIBITION & CURATORIAL RIGHTS</span></div><div class="item-desc">世界各地巡展的场地、策展与品牌合作权益</div></div><div class="item-value">CNY 280,000,000</div></div>
+      <div class="item"><div class="icon">🖼️</div><div><div class="item-name">原创作品与版权组合<span class="eng-low">ORIGINAL WORKS & COPYRIGHT PORTFOLIO</span></div><div class="item-desc">私人画作、委托作品及长期版权收益</div></div><div class="item-value">CNY 4,720,000,000</div></div>
+    </div>
+   </div>
+
+   <div class="section">
+    <div class="section-head"><div><div class="section-title">交通与出行<span class="eng-low">PRIVATE MOBILITY</span></div><div class="section-en">TRANSPORT</div></div><div class="total-small">CNY 815,860,000</div></div>
+    <div class="list">
+      <div class="item"><div class="icon">🏎️</div><div><div class="item-name">跑车<span class="eng-low">PRIVATE SPORTS CARS</span></div><div class="item-desc">多个私人车库 / 含特殊收藏级车型</div></div><div class="item-value">CNY 215,860,000</div></div>
+      <div class="item"><div class="icon">✈️</div><div><div class="item-name">飞机<span class="eng-low">PRIVATE AIRCRAFT</span></div><div class="item-desc">私人飞机 / 用于全球办展与跨洲出行</div></div><div class="item-value">CNY 280,000,000</div></div>
+      <div class="item"><div class="icon">🛥️</div><div><div class="item-name">游艇<span class="eng-low">PRIVATE YACHT</span></div><div class="item-desc">私人豪华游艇「鲸落」/ 停靠白沙湾私人码头</div></div><div class="item-value">CNY 320,000,000</div></div>
+    </div>
+   </div>
+
+   <div class="section">
+    <div class="section-head"><div><div class="section-title">个人收藏<span class="eng-low">PERSONAL COLLECTION</span></div><div class="section-en">COLLECTION</div></div><div class="total-small">CNY 498,000,000</div></div>
+    <div class="list">
+      <div class="item"><div class="icon">💎</div><div><div class="item-name">私人宝石收藏<span class="eng-low">PRIVATE GEM COLLECTION</span></div><div class="item-desc">含钻石、蓝宝石、深海主题稀有矿石与定制镶嵌</div></div><div class="item-value">CNY 286,000,000</div></div>
+      <div class="item"><div class="icon">⌚</div><div><div class="item-name">高定腕表与手镯<span class="eng-low">HAUTE HORLOGERIE & BRACELETS</span></div><div class="item-desc">单只手镯价值十余万起 / 含限量腕表与高级定制饰品</div></div><div class="item-value">CNY 86,000,000</div></div>
+      <div class="item"><div class="icon">👔</div><div><div class="item-name">高定服装与私人造型<span class="eng-low">COUTURE & PRIVATE STYLING</span></div><div class="item-desc">私人裁缝、定制礼服与日常穿着配置</div></div><div class="item-value">CNY 42,000,000</div></div>
+      <div class="item"><div class="icon">🎨</div><div><div class="item-name">稀有颜料与画材收藏<span class="eng-low">RARE PIGMENTS & ART MATERIALS</span></div><div class="item-desc">已停产的古典颜料、定制画具与私人珍藏</div></div><div class="item-value">CNY 16,000,000</div></div>
+      <div class="item"><div class="icon">📚</div><div><div class="item-name">古董与艺术文献<span class="eng-low">ANTIQUES & ART ARCHIVE</span></div><div class="item-desc">航海图、古籍、艺术史文献与手稿</div></div><div class="item-value">CNY 68,000,000</div></div>
+    </div>
+   </div>
+
+   <div class="section">
+    <div class="section-head"><div><div class="section-title">礼物库 · 保镖小姐<span class="eng-low">PRIVATE GIFT RESERVE</span></div><div class="section-en">RESTRICTED</div></div><div class="total-small">UNDISCLOSED</div></div>
+    <div class="list">
+      <div class="item"><div class="icon">💙</div><div><div class="item-name">「深海之心」定制宝石项链<span class="eng-low">THE DEEP SEA HEART · CUSTOM JEWEL</span></div><div class="item-desc">定制主石为深海蓝宝石，链身镶嵌碎钻，尚未送出</div></div><div class="item-value">CNY 86,000,000</div></div>
+      <div class="item"><div class="icon">🎁</div><div><div class="item-name">未公开礼物 × 12<span class="eng-low">UNDISCLOSED GIFTS × 12</span></div><div class="item-desc">仅授权账户可查看具体清单</div></div><div class="item-value">CNY 32,000,000</div></div>
+    </div>
+   </div>
+
+   <div class="notice">⚠ FICTIONAL / DEMO TERMINAL · 本页面为虚构的角色主题私人资产终端，仅用于娱乐、网页设计与互动展示。页面中的资产、金额、汇率、身份资料及实时增长均为虚构数据，不代表真实账户、金融资产或银行信息。</div>
+   <button class="logout" onclick="location.reload()">结束安全会话 · LOG OUT</button>
+ </div>
+
+<div id="activityToast" class="activity-toast">
+  <div class="toast-kicker">LIVE ACTIVITY · 实时互动</div>
+  <div id="toastText" class="toast-text">正在同步私人终端活动……</div>
+</div>
+
+<div id="peekModal" class="peek-modal" onclick="if(event.target===this)closePeek()">
+  <div class="peek-box interaction-box">
+    <div class="peek-sub">VISITOR DETECTED · GUEST SESSION</div>
+    <div class="peek-title" id="peekLine1">「又来了？」</div>
+    <div class="peek-english">You’re here again?</div>
+    <div class="peek-divider"></div>
+    <div class="peek-title peek-line2" id="peekLine2">「这次想看什么？」</div>
+    <div class="peek-english">What are you looking for this time?</div>
+    <div class="peek-meta">
+      <span>VISITOR · KAYAN_J</span>
+      <span>STATUS · BROWSING</span>
+    </div>
+    <button class="peek-close" onclick="closePeek()">继续浏览 · CONTINUE</button>
+  </div>
+</div>
+</section>
+
+<script>
+const PASSWORD="0306";
+const splash=document.getElementById("splash");
+function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function animateLoading(numId,barId,done){
+  show(barId==="bar1"?"loading1":"loading2");
+  let n=0; const num=document.getElementById(numId),bar=document.getElementById(barId);
+  const t=setInterval(()=>{n+=Math.floor(Math.random()*4)+1;if(n>100)n=100;num.textContent=n;bar.style.width=n+"%";if(n>=100){clearInterval(t);setTimeout(done,550)}},55);
+}
+function beginAccess(){animateLoading("loadNum1","bar1",()=>show("password"))}
+function verify(){
+ const v=document.getElementById("pw").value;
+ if(v!==PASSWORD){document.getElementById("pwError").textContent="ACCESS DENIED · 密码错误";return}
+ document.getElementById("pwError").textContent="";
+ animateLoading("loadNum2","bar2",()=>{show("dashboard");startDashboard()})
+}
+document.getElementById("pw").addEventListener("keydown",e=>{if(e.key==="Enter")verify()});
+
+let total=11403660565;
+function format(n){return "¥ "+Math.floor(n).toLocaleString("en-US")}
+function startDashboard(){
+ const updateClock=()=>{
+  const d=new Date(), pad=x=>String(x).padStart(2,"0");
+  document.getElementById("clock").textContent=pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+  document.getElementById("sessionDate").textContent=d.getFullYear()+"."+pad(d.getMonth()+1)+"."+pad(d.getDate());
+ };
+ updateClock();setInterval(updateClock,1000);
+ setInterval(()=>{total+=Math.floor(Math.random()*12800)+4200;document.getElementById("total").textContent=format(total)},900);
+}
+
+/* ===== V3 互动系统 ===== */
+const activities=[
+ "Kayan_J 正在查看 <b>个人资产总览</b>。",
+ "系统发现访客停留在 <b>白沙湾私人岛屿</b> 页面。",
+ "一笔新的艺术版权收益已进入 <b>实时计入</b> 队列。",
+ "系统检测到 <b>Kayan_J</b> 正在查看你的私人收藏。",
+ "Mo Art Studio 已更新一项 <b>全球巡展权益</b>。",
+ "系统提示：<b>Kayan_J</b> 的访问仍保持在线。",
+ "私人礼物库收到新的 <b>保密标记</b>。",
+ "资产终端已完成一次 <b>海洋主题数据同步</b>。"
+];
+let toastTimer=null, peekShown=false;
+function showActivity(text){
+ const toast=document.getElementById("activityToast");
+ document.getElementById("toastText").innerHTML=text;
+ toast.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>toast.classList.remove("show"),5200);
+}
+function showRandomActivity(){
+ showActivity(activities[Math.floor(Math.random()*activities.length)]);
+}
+function openPeek(){document.getElementById("peekModal").classList.add("open");peekShown=true}
+function closePeek(){document.getElementById("peekModal").classList.remove("open")}
+window.addEventListener("scroll",()=>{
+ const doc=document.documentElement;
+ const p=(window.scrollY/(doc.scrollHeight-window.innerHeight))*100;
+ if(p>16 && !window._a1){window._a1=1;showActivity("检测到 <b>Kayan_J</b> 正在向下浏览你的资产清单。")}
+ if(p>42 && !window._a2){window._a2=1;showActivity("有人停在 <b>艺术与版权</b> 区域看了很久。")}
+ if(p>70 && !window._a3){window._a3=1;showActivity("系统提醒：<b>礼物库</b> 已被访客打开。")}
+});
+setInterval(()=>{if(document.getElementById("dashboard").classList.contains("active"))showRandomActivity()},22000);
+setTimeout(()=>{if(document.getElementById("dashboard").classList.contains("active") && !peekShown)openPeek()},11000);
+
+</script>
+</body>
+</html>
